@@ -1,4 +1,4 @@
-﻿# Storyline: Retrieved artifacts for incident toolkit to export and zip in a readable format
+﻿# Storyline: Retrieved artifacts for incident toolkit to export and zip in a readable format to send via scp
 
 function Compress-Data {
     Compress-Archive -Path $truePath\* -DestinationPath "$readPath\Archived.zip" -Force
@@ -47,3 +47,12 @@ Export-Retrieved-Data -Output (Get-ItemProperty -Path Registry::HKEY_LOCAL_MACHI
 Export-Retrieved-Data -Output (Get-ChildItem -Path "$truePath" -Recurse -File -Exclude "hash.csv" | Get-FileHash) -FileName "hash.csv"
 
 Compress-Data
+
+$credential = (Get-Credential trevor.amell@cyber.local)
+
+Set-SCPFile -ComputerName '192.168.4.50' -Credential $credential -RemotePath "/home/trevor.amell@cyber.local" -LocalFile "$readPath\Archived.zip" -Verbose
+
+New-SSHSession -ComputerName '192.168.4.50' -Credential $credential
+(Invoke-SSHCommand -Index 0 -Command 'ls -l').Output
+
+Remove-SSHSession -SessionId 0
